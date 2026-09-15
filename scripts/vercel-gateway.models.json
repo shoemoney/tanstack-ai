@@ -174,7 +174,7 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["reasoning", "tool-use"],
+    "tags": ["reasoning", "tool-use", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -225,10 +225,10 @@
           "min": 128000
         }
       ],
-      "input_cache_read": "0.00000026",
+      "input_cache_read": "0.00000013",
       "input_cache_read_tiers": [
         {
-          "cost": "0.00000026",
+          "cost": "0.00000013",
           "min": 0,
           "max": 128000
         },
@@ -552,8 +552,8 @@
     "context_window": 32768,
     "max_tokens": 32768,
     "type": "embedding",
-    "zdr": "some",
-    "no_training": "some",
+    "zdr": "all",
+    "no_training": "all",
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -596,16 +596,15 @@
     "context_window": 32768,
     "max_tokens": 32768,
     "type": "embedding",
-    "zdr": "some",
-    "no_training": "some",
+    "zdr": "all",
+    "no_training": "all",
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
       "output": ["text"]
     },
     "pricing": {
-      "input": "0.00000005",
-      "varies_by_provider": true
+      "input": "0.00000001"
     }
   },
   {
@@ -1063,7 +1062,13 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["vision", "file-input", "reasoning", "tool-use"],
+    "tags": [
+      "vision",
+      "file-input",
+      "reasoning",
+      "tool-use",
+      "explicit-caching"
+    ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image", "pdf"],
@@ -1092,7 +1097,7 @@
     "pricing": {
       "input": "0.0000001",
       "output": "0.0000004",
-      "input_cache_read": "0.000000001",
+      "input_cache_read": "0.00000001",
       "input_cache_write": "0.000000125"
     }
   },
@@ -1109,7 +1114,13 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["vision", "file-input", "reasoning", "tool-use"],
+    "tags": [
+      "vision",
+      "file-input",
+      "reasoning",
+      "tool-use",
+      "explicit-caching"
+    ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image", "pdf"],
@@ -1145,19 +1156,19 @@
           "max": 256001
         },
         {
-          "cost": "0.0000012",
+          "cost": "0.0000005",
           "min": 256001
         }
       ],
-      "output": "0.0000024",
+      "output": "0.0000025",
       "output_tiers": [
         {
-          "cost": "0.0000024",
+          "cost": "0.0000025",
           "min": 0,
           "max": 256001
         },
         {
-          "cost": "0.0000072",
+          "cost": "0.000003",
           "min": 256001
         }
       ],
@@ -1169,7 +1180,7 @@
           "max": 256001
         },
         {
-          "cost": "0.00000012",
+          "cost": "0.00000005",
           "min": 256001
         }
       ],
@@ -1181,7 +1192,7 @@
           "max": 256001
         },
         {
-          "cost": "0.0000015",
+          "cost": "0.000000625",
           "min": 256001
         }
       ]
@@ -1244,7 +1255,13 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["reasoning", "tool-use", "vision", "file-input"],
+    "tags": [
+      "reasoning",
+      "tool-use",
+      "vision",
+      "file-input",
+      "explicit-caching"
+    ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image", "pdf"],
@@ -1296,10 +1313,10 @@
           "min": 256000
         }
       ],
-      "input_cache_read": "0.0000001",
+      "input_cache_read": "0.00000005",
       "input_cache_read_tiers": [
         {
-          "cost": "0.0000001",
+          "cost": "0.00000005",
           "min": 0,
           "max": 256000
         },
@@ -1340,7 +1357,8 @@
       "tool-use",
       "implicit-caching",
       "file-input",
-      "vision"
+      "vision",
+      "explicit-caching"
     ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -1441,7 +1459,7 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["implicit-caching", "reasoning", "tool-use"],
+    "tags": ["implicit-caching", "reasoning", "tool-use", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -1492,7 +1510,8 @@
       "tool-use",
       "implicit-caching",
       "file-input",
-      "vision"
+      "vision",
+      "explicit-caching"
     ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -1632,7 +1651,8 @@
       "vision",
       "implicit-caching",
       "video-input",
-      "file-input"
+      "file-input",
+      "explicit-caching"
     ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -1681,7 +1701,8 @@
       "tool-use",
       "implicit-caching",
       "file-input",
-      "vision"
+      "vision",
+      "explicit-caching"
     ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -1707,51 +1728,10 @@
       }
     ],
     "pricing": {
-      "input": "0.00000016",
+      "input": "0.00000015",
       "output": "0.00000047",
       "input_cache_read": "0.000000016",
       "input_cache_write": "0.0000002"
-    }
-  },
-  {
-    "id": "alibaba/qwen3.8-flash-next",
-    "object": "model",
-    "created": 1755815280,
-    "released": 1787702400,
-    "owned_by": "alibaba",
-    "name": "Qwen 3.8 Flash Next",
-    "description": "Qwen3.8-Flash-Next is Qwen’s experimental open-weight multimodal language model, pairing 125B parameters with just 6B activated for efficient reasoning and generation. With native 262K-token context extensible to 1M, vision support, and an architecture optimized for lower long-context latency, it is built for demanding agentic coding, tool use, visual reasoning, and multimodal automation.",
-    "context_window": 1048576,
-    "max_tokens": 1048576,
-    "type": "language",
-    "zdr": "none",
-    "no_training": "none",
-    "tags": ["reasoning", "tool-use", "implicit-caching", "vision"],
-    "supported_specifications": ["v2", "v3", "v4"],
-    "modalities": {
-      "input": ["text", "image"],
-      "output": ["text"]
-    },
-    "supported_parameters": [
-      "max_tokens",
-      "temperature",
-      "stop",
-      "tools",
-      "tool_choice",
-      "reasoning",
-      "include_reasoning"
-    ],
-    "temperature": true,
-    "reasoning_options": [
-      {
-        "type": "effort",
-        "values": ["low", "medium", "xhigh"]
-      }
-    ],
-    "pricing": {
-      "input": "0.00000012",
-      "output": "0.0000004",
-      "input_cache_read": "0.00000001"
     }
   },
   {
@@ -1767,7 +1747,13 @@
     "type": "language",
     "zdr": "all",
     "no_training": "all",
-    "tags": ["reasoning", "tool-use", "implicit-caching", "vision"],
+    "tags": [
+      "reasoning",
+      "tool-use",
+      "implicit-caching",
+      "vision",
+      "explicit-caching"
+    ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image"],
@@ -1819,7 +1805,8 @@
       "tool-use",
       "vision",
       "file-input",
-      "implicit-caching"
+      "implicit-caching",
+      "explicit-caching"
     ],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -4356,6 +4343,49 @@
     }
   },
   {
+    "id": "bytedance/seed-2.1-turbo",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1782172800,
+    "owned_by": "bytedance",
+    "name": "Seed 2.1 Turbo",
+    "description": "Seed 2.1 Turbo is ByteDance’s multimodal language model supporting text, image, and video inputs with text output. It offers a 262,144-token context window, reasoning, function calling, and structured JSON output.",
+    "context_window": 262144,
+    "max_tokens": 262144,
+    "type": "language",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": [
+      "reasoning",
+      "structured-output",
+      "tool-use",
+      "video-input",
+      "vision"
+    ],
+    "supported_specifications": ["v2", "v3", "v4"],
+    "modalities": {
+      "input": ["text", "image", "video"],
+      "output": ["text"]
+    },
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "stop",
+      "tools",
+      "tool_choice",
+      "reasoning",
+      "include_reasoning",
+      "response_format",
+      "structured_outputs"
+    ],
+    "temperature": true,
+    "pricing": {
+      "input": "0.0000005",
+      "output": "0.0000025",
+      "input_cache_read": "0.0000001"
+    }
+  },
+  {
     "id": "bytedance/seedance-2.0",
     "object": "model",
     "created": 1755815280,
@@ -5468,7 +5498,7 @@
     "max_tokens": 1048576,
     "type": "language",
     "zdr": "some",
-    "no_training": "some",
+    "no_training": "all",
     "tags": ["reasoning", "tool-use", "implicit-caching", "vision"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
@@ -5494,6 +5524,7 @@
         "values": ["high", "xhigh"]
       }
     ],
+    "deprecated_at": 1790294400000,
     "pricing": {
       "input": "0.00000022",
       "output": "0.00000066",
@@ -5563,9 +5594,9 @@
       "varies_by_provider": true,
       "regional": {
         "us": {
-          "input": "0.00000174",
-          "output": "0.00000348",
-          "input_cache_read": "0.00000015"
+          "input": "0.00000132",
+          "output": "0.00000396",
+          "input_cache_read": "0.000000132"
         }
       }
     }
@@ -5643,9 +5674,10 @@
     "context_window": 1000000,
     "max_tokens": 384000,
     "type": "language",
-    "zdr": "none",
-    "no_training": "none",
+    "zdr": "some",
+    "no_training": "some",
     "tags": ["reasoning", "tool-use", "implicit-caching", "vision"],
+    "regions": ["us"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image"],
@@ -5664,21 +5696,23 @@
     "pricing": {
       "input": "0.00000015",
       "output": "0.0000006",
-      "input_cache_read": "0.000000003",
+      "input_cache_read": "0.000000015",
       "peak_pricing": {
         "multiplier": 2,
         "windows": [
           {
-            "start_minute_utc": 60,
-            "end_minute_utc": 240,
-            "days_of_week": [1, 2, 3, 4, 5]
-          },
-          {
-            "start_minute_utc": 360,
-            "end_minute_utc": 600,
-            "days_of_week": [1, 2, 3, 4, 5]
+            "start_minute_utc": 0,
+            "end_minute_utc": 840
           }
         ]
+      },
+      "varies_by_provider": true,
+      "regional": {
+        "us": {
+          "input": "0.0000003",
+          "output": "0.0000012",
+          "input_cache_read": "0.00000003"
+        }
       }
     }
   },
@@ -7335,7 +7369,7 @@
     "type": "language",
     "zdr": "some",
     "no_training": "some",
-    "tags": ["file-input", "reasoning", "tool-use", "vision"],
+    "tags": ["tool-use", "vision", "file-input", "reasoning"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text", "image", "pdf"],
@@ -7885,9 +7919,9 @@
     ],
     "temperature": true,
     "pricing": {
-      "input": "0.00000006",
-      "output": "0.00000018",
-      "input_cache_read": "0.000000012"
+      "input": "0.000000021",
+      "output": "0.000000063",
+      "input_cache_read": "0.0000000042"
     }
   },
   {
@@ -8020,6 +8054,74 @@
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
+      "output": ["text"]
+    },
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "stop",
+      "tools",
+      "tool_choice",
+      "reasoning",
+      "include_reasoning"
+    ],
+    "temperature": true,
+    "pricing": {
+      "input": "0",
+      "output": "0"
+    }
+  },
+  {
+    "id": "inclusionai/ling-3.0-flash-vl",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1788825600,
+    "owned_by": "inclusionai",
+    "name": "Ling 3.0 Flash VL",
+    "description": "Ling 3.0 Flash VL builds on Ling 3.0 Flash with stronger language capabilities, native visual perception, and visual agent capabilities. It supports text, image, and video inputs with text output, reasoning, and function calling.",
+    "context_window": 256000,
+    "max_tokens": 32000,
+    "type": "language",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": ["free", "reasoning", "tool-use", "video-input", "vision"],
+    "supported_specifications": ["v2", "v3", "v4"],
+    "modalities": {
+      "input": ["text", "image", "video"],
+      "output": ["text"]
+    },
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "stop",
+      "tools",
+      "tool_choice",
+      "reasoning",
+      "include_reasoning"
+    ],
+    "temperature": true,
+    "pricing": {
+      "input": "0",
+      "output": "0"
+    }
+  },
+  {
+    "id": "inclusionai/ling-3.0-flash-vl-free",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1788825600,
+    "owned_by": "inclusionai",
+    "name": "Ling 3.0 Flash VL (Free)",
+    "description": "Ling 3.0 Flash VL builds on Ling 3.0 Flash with stronger language capabilities, native visual perception, and visual agent capabilities. It supports text, image, and video inputs with text output, reasoning, and function calling.",
+    "context_window": 256000,
+    "max_tokens": 32000,
+    "type": "language",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": ["free", "reasoning", "tool-use", "video-input", "vision"],
+    "supported_specifications": ["v2", "v3", "v4"],
+    "modalities": {
+      "input": ["text", "image", "video"],
       "output": ["text"]
     },
     "supported_parameters": [
@@ -8913,6 +9015,7 @@
       }
     ],
     "knowledge": "2026-01-04",
+    "deprecated_at": 1790294400000,
     "pricing": {
       "input": "0.00000035",
       "output": "0.0000015",
@@ -9218,14 +9321,14 @@
       "video_duration_pricing": [
         {
           "resolution": "2k",
-          "cost_per_second": "0.065"
+          "cost_per_second": "0.13"
         },
         {
           "resolution": "768p",
-          "cost_per_second": "0.04"
+          "cost_per_second": "0.08"
         },
         {
-          "cost_per_second": "0.065"
+          "cost_per_second": "0.13"
         }
       ]
     }
@@ -9277,14 +9380,14 @@
       "video_duration_pricing": [
         {
           "resolution": "480p",
-          "cost_per_second": "0.025"
+          "cost_per_second": "0.05"
         },
         {
           "resolution": "768p",
-          "cost_per_second": "0.04"
+          "cost_per_second": "0.08"
         },
         {
-          "cost_per_second": "0.04"
+          "cost_per_second": "0.08"
         }
       ]
     }
@@ -9302,7 +9405,7 @@
     "type": "language",
     "zdr": "none",
     "no_training": "some",
-    "tags": ["reasoning", "tool-use"],
+    "tags": ["reasoning", "tool-use", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9340,7 +9443,7 @@
     "type": "language",
     "zdr": "some",
     "no_training": "some",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9378,7 +9481,7 @@
     "type": "language",
     "zdr": "none",
     "no_training": "none",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9415,7 +9518,7 @@
     "type": "language",
     "zdr": "some",
     "no_training": "some",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9436,7 +9539,6 @@
       "output": "0.0000012",
       "input_cache_read": "0.00000003",
       "input_cache_write": "0.000000375",
-      "varies_by_provider": true,
       "fast": {
         "input": "0.0000006",
         "output": "0.0000024",
@@ -9458,7 +9560,7 @@
     "type": "language",
     "zdr": "none",
     "no_training": "some",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9494,7 +9596,7 @@
     "type": "language",
     "zdr": "none",
     "no_training": "some",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -9515,6 +9617,7 @@
       "output": "0.0000012",
       "input_cache_read": "0.00000006",
       "input_cache_write": "0.000000375",
+      "varies_by_provider": true,
       "fast": {
         "input": "0.0000006",
         "output": "0.0000024",
@@ -9536,7 +9639,7 @@
     "type": "language",
     "zdr": "none",
     "no_training": "none",
-    "tags": ["reasoning", "tool-use", "implicit-caching"],
+    "tags": ["reasoning", "tool-use", "implicit-caching", "explicit-caching"],
     "supported_specifications": ["v2", "v3", "v4"],
     "modalities": {
       "input": ["text"],
@@ -10217,6 +10320,7 @@
       "input": "0.00000095",
       "output": "0.000004",
       "input_cache_read": "0.00000016",
+      "varies_by_provider": true,
       "regional": {
         "us": {
           "input": "0.00000095",
@@ -10264,6 +10368,7 @@
     ],
     "temperature": true,
     "knowledge": "2025-01",
+    "deprecated_at": 1790380800000,
     "pricing": {
       "input": "0.00000095",
       "output": "0.000004",
@@ -10520,7 +10625,8 @@
     ],
     "pricing": {
       "input": "0.00000005",
-      "output": "0.00000024"
+      "output": "0.0000002",
+      "input_cache_read": "0.000000025"
     }
   },
   {
@@ -13179,6 +13285,7 @@
       "vision",
       "implicit-caching",
       "web-search",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -13451,6 +13558,7 @@
       "vision",
       "implicit-caching",
       "web-search",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -13600,6 +13708,7 @@
       "file-input",
       "vision",
       "web-search",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -13875,6 +13984,7 @@
       "file-input",
       "vision",
       "web-search",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -14024,6 +14134,7 @@
       "tool-use",
       "vision",
       "implicit-caching",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -14298,6 +14409,7 @@
       "tool-use",
       "vision",
       "implicit-caching",
+      "explicit-caching",
       "websocket-realtime",
       "fast"
     ],
@@ -14441,14 +14553,15 @@
     "zdr": "some",
     "no_training": "all",
     "tags": [
-      "fast",
       "file-input",
       "implicit-caching",
       "reasoning",
       "tool-use",
       "vision",
       "web-search",
-      "websocket-realtime"
+      "websocket-realtime",
+      "explicit-caching",
+      "fast"
     ],
     "regions": ["us"],
     "supported_specifications": ["v2", "v3", "v4"],
@@ -14704,14 +14817,15 @@
     "zdr": "some",
     "no_training": "all",
     "tags": [
-      "fast",
       "file-input",
       "implicit-caching",
       "reasoning",
       "tool-use",
       "vision",
       "web-search",
-      "websocket-realtime"
+      "websocket-realtime",
+      "explicit-caching",
+      "fast"
     ],
     "regions": ["us"],
     "supported_specifications": ["v2", "v3", "v4"],
@@ -16299,6 +16413,49 @@
     }
   },
   {
+    "id": "sakana/fugu-max",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1788998400,
+    "owned_by": "sakana",
+    "name": "Fugu Max",
+    "description": "Fugu Max orchestrates our largest pool of models to push the cost–performance Pareto frontier. It dynamically finds efficient combinations of expert agents, aiming to improve model performance and cost efficiency together.",
+    "context_window": 1000000,
+    "max_tokens": 1000000,
+    "type": "language",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": [
+      "reasoning",
+      "tool-use",
+      "vision",
+      "implicit-caching",
+      "structured-output"
+    ],
+    "supported_specifications": ["v2", "v3", "v4"],
+    "modalities": {
+      "input": ["text", "image"],
+      "output": ["text"]
+    },
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "stop",
+      "tools",
+      "tool_choice",
+      "reasoning",
+      "include_reasoning",
+      "response_format",
+      "structured_outputs"
+    ],
+    "temperature": true,
+    "pricing": {
+      "input": "0.000002",
+      "output": "0.000006",
+      "input_cache_read": "0.00000025"
+    }
+  },
+  {
     "id": "sakana/fugu-ultra",
     "object": "model",
     "created": 1755815280,
@@ -16325,6 +16482,82 @@
       "tool_choice",
       "reasoning",
       "include_reasoning"
+    ],
+    "temperature": true,
+    "pricing": {
+      "input": "0.000005",
+      "input_tiers": [
+        {
+          "cost": "0.000005",
+          "min": 0,
+          "max": 272001
+        },
+        {
+          "cost": "0.00001",
+          "min": 272001
+        }
+      ],
+      "output": "0.00003",
+      "output_tiers": [
+        {
+          "cost": "0.00003",
+          "min": 0,
+          "max": 272001
+        },
+        {
+          "cost": "0.000045",
+          "min": 272001
+        }
+      ],
+      "input_cache_read": "0.0000005",
+      "input_cache_read_tiers": [
+        {
+          "cost": "0.0000005",
+          "min": 0,
+          "max": 272001
+        },
+        {
+          "cost": "0.000001",
+          "min": 272001
+        }
+      ]
+    }
+  },
+  {
+    "id": "sakana/fugu-ultra-v2",
+    "object": "model",
+    "created": 1755815280,
+    "released": 1788998400,
+    "owned_by": "sakana",
+    "name": "Fugu Ultra v2",
+    "description": "Fugu Ultra coordinates a deeper pool of expert agents to maximize answer quality on hard, high-stakes problems. Fugu Ultra focuses on maximizing performance, for a higher cost.",
+    "context_window": 1000000,
+    "max_tokens": 1000000,
+    "type": "language",
+    "zdr": "none",
+    "no_training": "all",
+    "tags": [
+      "reasoning",
+      "tool-use",
+      "vision",
+      "implicit-caching",
+      "structured-output"
+    ],
+    "supported_specifications": ["v2", "v3", "v4"],
+    "modalities": {
+      "input": ["text", "image"],
+      "output": ["text"]
+    },
+    "supported_parameters": [
+      "max_tokens",
+      "temperature",
+      "stop",
+      "tools",
+      "tool_choice",
+      "reasoning",
+      "include_reasoning",
+      "response_format",
+      "structured_outputs"
     ],
     "temperature": true,
     "pricing": {
@@ -17885,6 +18118,7 @@
         "values": ["none", "minimal", "low", "medium", "high", "xhigh", "max"]
       }
     ],
+    "deprecated_at": 1790380800000,
     "pricing": {
       "input": "0.000001",
       "output": "0.00000405",
@@ -17941,6 +18175,7 @@
         "values": ["none", "minimal", "low", "medium", "high", "xhigh", "max"]
       }
     ],
+    "deprecated_at": 1790380800000,
     "pricing": {
       "input": "0.0000005",
       "output": "0.0000012",
@@ -18507,6 +18742,7 @@
     ],
     "knowledge": "2025-04",
     "interleaved": true,
+    "deprecated_at": 1790380800000,
     "pricing": {
       "input": "0.0000006",
       "output": "0.0000022",
@@ -18719,7 +18955,8 @@
     "pricing": {
       "input": "0.0000014",
       "output": "0.0000044",
-      "input_cache_read": "0.00000026"
+      "input_cache_read": "0.00000026",
+      "varies_by_provider": true
     }
   },
   {
@@ -18819,6 +19056,7 @@
         "values": ["high", "xhigh"]
       }
     ],
+    "deprecated_at": 1790294400000,
     "pricing": {
       "input": "0.0000021",
       "output": "0.0000066",

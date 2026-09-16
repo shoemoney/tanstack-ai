@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { planLabelChanges } from './actions'
+import { describe, expect, it, vi } from 'vitest'
+import { MANAGED_LABELS, ensureManagedLabels, planLabelChanges } from './actions'
 import { ACK_MARKER, REPRO_MARKER, buildAckComment } from './comments'
 import { classifyPR } from './classify'
 import { planSweep } from './sweep'
@@ -12,6 +12,7 @@ import {
   makeIssue,
   makePR,
 } from './fixtures'
+import type { GitHubClient } from './github'
 import type { RepoSnapshot } from './types'
 
 function makeSnapshot(overrides: Partial<RepoSnapshot> = {}): RepoSnapshot {
@@ -26,6 +27,56 @@ function makeSnapshot(overrides: Partial<RepoSnapshot> = {}): RepoSnapshot {
     ...overrides,
   }
 }
+
+function clientRejecting(status: number): {
+  client: GitHubClient
+  calls: Array<string>
+} {
+  const calls: Array<string> = []
+  const client: GitHubClient = {
+    graphql: async () => {
+      throw new Error('not used')
+    },
+    rest: async (method, path) => {
+      calls.push(`${method} ${path}`)
+      throw new Error(
+        `GitHub REST ${method} ${path} \u2192 HTTP ${status}: {"message":"nope"}`,
+      )
+    },
+  }
+  return { client, calls }
+}
+
+describe('ensureManagedLabels', () => {
+  it('keeps going when the label already exists (422)', async () => {
+    const { client, calls } = clientRejecting(422)
+    await expect(
+      ensureManagedLabels(client, 'TanStack/ai'),
+    ).resolves.toBeUndefined()
+    expect(calls).toHaveLength(MANAGED_LABELS.length)
+  })
+
+  it('does not fail the sweep when the token cannot write labels (403)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { client, calls } = clientRejecting(403)
+    try {
+      await expect(
+        ensureManagedLabels(client, 'TanStack/ai'),
+      ).resolves.toBeUndefined()
+      expect(calls).toHaveLength(1)
+      expect(warn).toHaveBeenCalledOnce()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('still surfaces an unexpected failure (500)', async () => {
+    const { client } = clientRejecting(500)
+    await expect(ensureManagedLabels(client, 'TanStack/ai')).rejects.toThrow(
+      '500',
+    )
+  })
+})
 
 describe('planSweep', () => {
   it('assigns, acks, and labels a fresh unassigned PR', () => {

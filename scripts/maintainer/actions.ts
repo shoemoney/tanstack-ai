@@ -98,10 +98,24 @@ export async function ensureManagedLabels(
     try {
       await client.rest('POST', `/repos/${repo}/labels`, label)
     } catch (error) {
-      // 422 = already exists; anything else should surface.
-      if (!(error instanceof Error) || !error.message.includes('422')) {
+      if (!(error instanceof Error)) {
         throw error
       }
+      // 422 = the label already exists, which is the goal.
+      if (error.message.includes('422')) {
+        continue
+      }
+      // 403 = the token cannot write to this repo. A fork's GITHUB_TOKEN
+      // has no write scope on the upstream it sweeps, and that never
+      // recovers on a retry. Labels stay as they are and the sweep keeps
+      // running; a write the token cannot make is not a sweep failure.
+      if (error.message.includes('403')) {
+        console.warn(
+          `Cannot manage labels on ${repo}: the token has no write access. Skipping label setup.`,
+        )
+        return
+      }
+      throw error
     }
   }
 }

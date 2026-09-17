@@ -93,7 +93,7 @@ export function planLabelChanges(
 export async function ensureManagedLabels(
   client: GitHubClient,
   repo: string,
-): Promise<void> {
+): Promise<boolean> {
   for (const label of MANAGED_LABELS) {
     try {
       await client.rest('POST', `/repos/${repo}/labels`, label)
@@ -105,19 +105,18 @@ export async function ensureManagedLabels(
       if (error.message.includes('422')) {
         continue
       }
-      // 403 = the token cannot write to this repo. A fork's GITHUB_TOKEN
-      // has no write scope on the upstream it sweeps, and that never
-      // recovers on a retry. Labels stay as they are and the sweep keeps
-      // running; a write the token cannot make is not a sweep failure.
-      if (error.message.includes('403')) {
+      // Stop this sweep's writes when label setup is denied. A denial here
+      // does not establish permissions for every other GitHub endpoint.
+      if (isPermissionError(error)) {
         console.warn(
-          `Cannot manage labels on ${repo}: the token has no write access. Skipping label setup.`,
+          `Cannot manage labels on ${repo}: label creation was denied. Skipping label setup.`,
         )
-        return
+        return false
       }
       throw error
     }
   }
+  return true
 }
 
 async function executeOne(
@@ -150,8 +149,27 @@ async function executeOne(
   }
 }
 
+/**
+ * GitHub answers both "you are going too fast" and "you may not do this"
+ * with a 403, and only the response body tells them apart. Retrying the
+ * second one just burns a 60s backoff on a call that can never succeed.
+ */
+function mentionsRateLimit(message: string): boolean {
+  return /rate limit|secondary rate|abuse detection/i.test(message)
+}
+
 function isRateLimitError(error: unknown): boolean {
-  return error instanceof Error && /HTTP (403|429)/.test(error.message)
+  if (!(error instanceof Error)) return false
+  if (error.message.includes('HTTP 429')) return true
+  return error.message.includes('HTTP 403') && mentionsRateLimit(error.message)
+}
+
+function isPermissionError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.message.includes('HTTP 403') &&
+    !mentionsRateLimit(error.message)
+  )
 }
 
 const sleep = (ms: number) =>
@@ -168,7 +186,7 @@ export async function executeMutations(
   repo: string,
   mutations: Array<Mutation>,
   options: ExecuteOptions = {},
-): Promise<void> {
+): Promise<number> {
   const pacingMs = options.pacingMs ?? 1000
   const sleepImpl = options.sleepImpl ?? sleep
   for (const [i, m] of mutations.entries()) {
@@ -176,6 +194,15 @@ export async function executeMutations(
     try {
       await executeOne(client, repo, m)
     } catch (error) {
+      // Stop this sweep on a permission denial, as label setup does.
+      if (isPermissionError(error)) {
+        console.warn(
+          `Write denied on ${repo}. Skipping ${
+            mutations.length - i
+          } remaining mutation(s).`,
+        )
+        return i
+      }
       if (!isRateLimitError(error)) throw error
       // Likely the secondary rate limit; back off once and retry before
       // giving up (an aborted run converges on the next sweep anyway).
@@ -186,4 +213,5 @@ export async function executeMutations(
     // Per-mutation progress keeps watchdogs (and humans) from presuming death.
     console.log(`  ✔ [${i + 1}/${mutations.length}] ${describeMutation(m)}`)
   }
+  return mutations.length
 }

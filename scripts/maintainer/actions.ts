@@ -93,7 +93,7 @@ export function planLabelChanges(
 export async function ensureManagedLabels(
   client: GitHubClient,
   repo: string,
-): Promise<void> {
+): Promise<boolean> {
   for (const label of MANAGED_LABELS) {
     try {
       await client.rest('POST', `/repos/${repo}/labels`, label)
@@ -105,19 +105,18 @@ export async function ensureManagedLabels(
       if (error.message.includes('422')) {
         continue
       }
-      // 403 = the token cannot write to this repo. A fork's GITHUB_TOKEN
-      // has no write scope on the upstream it sweeps, and that never
-      // recovers on a retry. Labels stay as they are and the sweep keeps
-      // running; a write the token cannot make is not a sweep failure.
-      if (error.message.includes('403')) {
+      // Stop this sweep's writes when label setup is denied. A denial here
+      // does not establish permissions for every other GitHub endpoint.
+      if (isPermissionError(error)) {
         console.warn(
-          `Cannot manage labels on ${repo}: the token has no write access. Skipping label setup.`,
+          `Cannot manage labels on ${repo}: label creation was denied. Skipping label setup.`,
         )
-        return
+        return false
       }
       throw error
     }
   }
+  return true
 }
 
 async function executeOne(
@@ -187,7 +186,7 @@ export async function executeMutations(
   repo: string,
   mutations: Array<Mutation>,
   options: ExecuteOptions = {},
-): Promise<void> {
+): Promise<number> {
   const pacingMs = options.pacingMs ?? 1000
   const sleepImpl = options.sleepImpl ?? sleep
   for (const [i, m] of mutations.entries()) {
@@ -195,17 +194,14 @@ export async function executeMutations(
     try {
       await executeOne(client, repo, m)
     } catch (error) {
-      // A write the token is not allowed to make never recovers on a retry,
-      // and every remaining mutation targets the same repo with the same
-      // token. Stop writing instead of failing: same rule ensureManagedLabels
-      // already follows, one layer down.
+      // Stop this sweep on a permission denial, as label setup does.
       if (isPermissionError(error)) {
         console.warn(
-          `Cannot write to ${repo}: the token has no write access. Skipping ${
+          `Write denied on ${repo}. Skipping ${
             mutations.length - i
           } remaining mutation(s).`,
         )
-        return
+        return i
       }
       if (!isRateLimitError(error)) throw error
       // Likely the secondary rate limit; back off once and retry before
@@ -217,4 +213,5 @@ export async function executeMutations(
     // Per-mutation progress keeps watchdogs (and humans) from presuming death.
     console.log(`  ✔ [${i + 1}/${mutations.length}] ${describeMutation(m)}`)
   }
+  return mutations.length
 }

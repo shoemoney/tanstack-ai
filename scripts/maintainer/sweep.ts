@@ -166,7 +166,7 @@ function summarize(plan: SweepPlan, dryRun: boolean): string {
   return lines.join('\n')
 }
 
-async function main(): Promise<void> {
+export async function main(): Promise<void> {
   const dryRun = isDryRun()
   const config = await loadConfig()
   const client = createGitHubClient({ token: await resolveToken() })
@@ -187,9 +187,14 @@ async function main(): Promise<void> {
     return
   }
 
-  await ensureManagedLabels(client, config.repo)
-  await executeMutations(client, config.repo, plan.mutations)
-  console.log(`Executed ${plan.mutations.length} mutation(s).`)
+  if (!(await ensureManagedLabels(client, config.repo))) {
+    console.log(
+      `Skipped ${plan.mutations.length} mutation(s): label setup was denied.`,
+    )
+    return
+  }
+  const executed = await executeMutations(client, config.repo, plan.mutations)
+  console.log(`Executed ${executed} mutation(s).`)
 }
 
 const isDirectRun =

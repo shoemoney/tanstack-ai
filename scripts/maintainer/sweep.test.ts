@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   MANAGED_LABELS,
   ensureManagedLabels,
@@ -7,7 +7,11 @@ import {
 } from './actions'
 import { ACK_MARKER, REPRO_MARKER, buildAckComment } from './comments'
 import { classifyPR } from './classify'
-import { planSweep } from './sweep'
+import { main, planSweep } from './sweep'
+import * as collection from './collect'
+import * as configuration from './config'
+import * as environment from './env'
+import * as github from './github'
 import {
   NOW,
   comment,
@@ -75,9 +79,7 @@ function clientRejectingWith(
 describe('ensureManagedLabels', () => {
   it('keeps going when the label already exists (422)', async () => {
     const { client, calls } = clientRejecting(422)
-    await expect(
-      ensureManagedLabels(client, 'TanStack/ai'),
-    ).resolves.toBeUndefined()
+    await expect(ensureManagedLabels(client, 'TanStack/ai')).resolves.toBe(true)
     expect(calls).toHaveLength(MANAGED_LABELS.length)
   })
 
@@ -85,11 +87,29 @@ describe('ensureManagedLabels', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { client, calls } = clientRejecting(403)
     try {
-      await expect(
-        ensureManagedLabels(client, 'TanStack/ai'),
-      ).resolves.toBeUndefined()
+      await expect(ensureManagedLabels(client, 'TanStack/ai')).resolves.toBe(
+        false,
+      )
       expect(calls).toHaveLength(1)
       expect(warn).toHaveBeenCalledOnce()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it.each([
+    'API rate limit exceeded',
+    'You have exceeded a secondary rate limit',
+    'You have triggered an abuse detection mechanism',
+  ])('surfaces a label-setup rate limit: %s', async (message) => {
+    const { client, calls } = clientRejectingWith(403, message)
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      await expect(ensureManagedLabels(client, 'TanStack/ai')).rejects.toThrow(
+        message,
+      )
+      expect(calls).toHaveLength(1)
+      expect(warn).not.toHaveBeenCalled()
     } finally {
       warn.mockRestore()
     }
@@ -101,6 +121,123 @@ describe('ensureManagedLabels', () => {
       '500',
     )
   })
+})
+
+describe('sweep execution', () => {
+  const snapshot = makeSnapshot({
+    prs: [makePR({ author: 'tom', assignees: ['alem'] })],
+  })
+
+  beforeEach(() => {
+    vi.spyOn(configuration, 'loadConfig').mockResolvedValue(config)
+    vi.spyOn(collection, 'collectSnapshot').mockResolvedValue(snapshot)
+    vi.spyOn(environment, 'isDryRun').mockReturnValue(false)
+    vi.spyOn(environment, 'resolveToken').mockResolvedValue('test-token')
+    vi.spyOn(environment, 'writeStepSummary').mockResolvedValue()
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(() => vi.restoreAllMocks())
+
+  it('skips all planned writes after label setup is denied', async () => {
+    const calls: Array<string> = []
+    vi.spyOn(github, 'createGitHubClient').mockReturnValue({
+      graphql: async () => {
+        throw new Error('not used')
+      },
+      rest: async (method, path) => {
+        calls.push(`${method} ${path}`)
+        if (path === '/repos/TanStack/ai/labels') {
+          throw new Error(
+            'GitHub REST HTTP 403: Resource not accessible by integration',
+          )
+        }
+        throw new Error('Unexpected mutation after label setup was denied')
+      },
+    })
+    expect(planSweep(snapshot, config).mutations).toHaveLength(1)
+
+    await main()
+
+    expect(calls).toEqual(['POST /repos/TanStack/ai/labels'])
+    expect(console.warn).toHaveBeenCalledOnce()
+    expect(console.log).toHaveBeenCalledWith(
+      'Skipped 1 mutation(s): label setup was denied.',
+    )
+    expect(console.log).not.toHaveBeenCalledWith('Executed 1 mutation(s).')
+  })
+
+  it.each([0, 1])(
+    'reports only mutations completed before denial (%i completed)',
+    async (completed) => {
+      const prs = Array.from({ length: completed + 1 }, (_, i) =>
+        makePR({ number: 100 + i, author: 'tom', assignees: ['alem'] }),
+      )
+      vi.mocked(collection.collectSnapshot).mockResolvedValue(
+        makeSnapshot({ prs }),
+      )
+      const calls: Array<string> = []
+      vi.spyOn(github, 'createGitHubClient').mockReturnValue({
+        graphql: async () => {
+          throw new Error('not used')
+        },
+        rest: async (method, path) => {
+          calls.push(`${method} ${path}`)
+          if (path === `/repos/TanStack/ai/issues/${100 + completed}/labels`) {
+            throw new Error(
+              'GitHub REST HTTP 403: Resource not accessible by integration',
+            )
+          }
+          return null
+        },
+      })
+
+      await main()
+
+      expect(calls).toEqual([
+        ...MANAGED_LABELS.map(() => 'POST /repos/TanStack/ai/labels'),
+        ...prs.map(
+          (pr) => `POST /repos/TanStack/ai/issues/${pr.number}/labels`,
+        ),
+      ])
+      expect(console.warn).toHaveBeenCalledOnce()
+      expect(console.log).toHaveBeenCalledWith(
+        `Executed ${completed} mutation(s).`,
+      )
+      expect(console.log).not.toHaveBeenCalledWith(
+        `Executed ${prs.length} mutation(s).`,
+      )
+    },
+  )
+
+  it.each([201, 422])(
+    'executes planned writes after label setup returns %i',
+    async (labelStatus) => {
+      const calls: Array<string> = []
+      vi.spyOn(github, 'createGitHubClient').mockReturnValue({
+        graphql: async () => {
+          throw new Error('not used')
+        },
+        rest: async (method, path) => {
+          calls.push(`${method} ${path}`)
+          if (path === '/repos/TanStack/ai/labels' && labelStatus === 422) {
+            throw new Error('GitHub REST HTTP 422: label already exists')
+          }
+          return null
+        },
+      })
+
+      await main()
+
+      expect(calls).toEqual([
+        ...MANAGED_LABELS.map(() => 'POST /repos/TanStack/ai/labels'),
+        'POST /repos/TanStack/ai/issues/100/labels',
+      ])
+      expect(console.warn).not.toHaveBeenCalled()
+      expect(console.log).toHaveBeenCalledWith('Executed 1 mutation(s).')
+    },
+  )
 })
 
 describe('executeMutations', () => {
@@ -130,7 +267,7 @@ describe('executeMutations', () => {
           [labelMutation, secondMutation],
           { pacingMs: 0, sleepImpl },
         ),
-      ).resolves.toBeUndefined()
+      ).resolves.toBe(0)
       // Stops at the first denial instead of retrying a call that cannot pass.
       expect(calls).toEqual(['POST /repos/TanStack/ai/issues/1401/labels'])
       expect(sleepImpl).not.toHaveBeenCalled()

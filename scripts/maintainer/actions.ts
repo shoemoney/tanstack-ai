@@ -150,8 +150,27 @@ async function executeOne(
   }
 }
 
+/**
+ * GitHub answers both "you are going too fast" and "you may not do this"
+ * with a 403, and only the response body tells them apart. Retrying the
+ * second one just burns a 60s backoff on a call that can never succeed.
+ */
+function mentionsRateLimit(message: string): boolean {
+  return /rate limit|secondary rate|abuse detection/i.test(message)
+}
+
 function isRateLimitError(error: unknown): boolean {
-  return error instanceof Error && /HTTP (403|429)/.test(error.message)
+  if (!(error instanceof Error)) return false
+  if (error.message.includes('HTTP 429')) return true
+  return error.message.includes('HTTP 403') && mentionsRateLimit(error.message)
+}
+
+function isPermissionError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.message.includes('HTTP 403') &&
+    !mentionsRateLimit(error.message)
+  )
 }
 
 const sleep = (ms: number) =>
@@ -176,6 +195,18 @@ export async function executeMutations(
     try {
       await executeOne(client, repo, m)
     } catch (error) {
+      // A write the token is not allowed to make never recovers on a retry,
+      // and every remaining mutation targets the same repo with the same
+      // token. Stop writing instead of failing: same rule ensureManagedLabels
+      // already follows, one layer down.
+      if (isPermissionError(error)) {
+        console.warn(
+          `Cannot write to ${repo}: the token has no write access. Skipping ${
+            mutations.length - i
+          } remaining mutation(s).`,
+        )
+        return
+      }
       if (!isRateLimitError(error)) throw error
       // Likely the secondary rate limit; back off once and retry before
       // giving up (an aborted run converges on the next sweep anyway).

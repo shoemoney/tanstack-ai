@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { MANAGED_LABELS, ensureManagedLabels, planLabelChanges } from './actions'
+import {
+  MANAGED_LABELS,
+  ensureManagedLabels,
+  executeMutations,
+  planLabelChanges,
+} from './actions'
 import { ACK_MARKER, REPRO_MARKER, buildAckComment } from './comments'
 import { classifyPR } from './classify'
 import { planSweep } from './sweep'
@@ -13,6 +18,7 @@ import {
   makePR,
 } from './fixtures'
 import type { GitHubClient } from './github'
+import type { Mutation } from './actions'
 import type { RepoSnapshot } from './types'
 
 function makeSnapshot(overrides: Partial<RepoSnapshot> = {}): RepoSnapshot {
@@ -47,6 +53,25 @@ function clientRejecting(status: number): {
   return { client, calls }
 }
 
+function clientRejectingWith(
+  status: number,
+  message: string,
+): { client: GitHubClient; calls: Array<string> } {
+  const calls: Array<string> = []
+  const client: GitHubClient = {
+    graphql: async () => {
+      throw new Error('not used')
+    },
+    rest: async (method, path) => {
+      calls.push(`${method} ${path}`)
+      throw new Error(
+        `GitHub REST ${method} ${path} \u2192 HTTP ${status}: ${JSON.stringify({ message })}`,
+      )
+    },
+  }
+  return { client, calls }
+}
+
 describe('ensureManagedLabels', () => {
   it('keeps going when the label already exists (422)', async () => {
     const { client, calls } = clientRejecting(422)
@@ -75,6 +100,70 @@ describe('ensureManagedLabels', () => {
     await expect(ensureManagedLabels(client, 'TanStack/ai')).rejects.toThrow(
       '500',
     )
+  })
+})
+
+describe('executeMutations', () => {
+  const labelMutation: Mutation = {
+    kind: 'add-labels',
+    number: 1401,
+    labels: ['waiting-on: maintainer'],
+  }
+  const secondMutation: Mutation = {
+    kind: 'add-labels',
+    number: 1386,
+    labels: ['has-pr'],
+  }
+
+  it('does not fail the sweep when the token cannot write (403 permission)', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { client, calls } = clientRejectingWith(
+      403,
+      'Resource not accessible by integration',
+    )
+    const sleepImpl = vi.fn(async () => {})
+    try {
+      await expect(
+        executeMutations(
+          client,
+          'TanStack/ai',
+          [labelMutation, secondMutation],
+          { pacingMs: 0, sleepImpl },
+        ),
+      ).resolves.toBeUndefined()
+      // Stops at the first denial instead of retrying a call that cannot pass.
+      expect(calls).toEqual(['POST /repos/TanStack/ai/issues/1401/labels'])
+      expect(sleepImpl).not.toHaveBeenCalled()
+      expect(warn).toHaveBeenCalledOnce()
+    } finally {
+      warn.mockRestore()
+    }
+  })
+
+  it('still backs off and retries a genuine 403 secondary rate limit', async () => {
+    const { client, calls } = clientRejectingWith(
+      403,
+      'You have exceeded a secondary rate limit',
+    )
+    const sleepImpl = vi.fn(async () => {})
+    await expect(
+      executeMutations(client, 'TanStack/ai', [labelMutation], {
+        pacingMs: 0,
+        sleepImpl,
+      }),
+    ).rejects.toThrow('403')
+    expect(calls).toHaveLength(2)
+    expect(sleepImpl).toHaveBeenCalledWith(60_000)
+  })
+
+  it('still surfaces an unexpected failure (500)', async () => {
+    const { client } = clientRejecting(500)
+    await expect(
+      executeMutations(client, 'TanStack/ai', [labelMutation], {
+        pacingMs: 0,
+        sleepImpl: async () => {},
+      }),
+    ).rejects.toThrow('500')
   })
 })
 

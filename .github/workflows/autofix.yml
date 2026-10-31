@@ -15,7 +15,7 @@ permissions:
 jobs:
   autofix:
     name: autofix
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       # Run JS actions (e.g. autofix-ci/action, still `node20` runtime) on Node 24 per
       # https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
